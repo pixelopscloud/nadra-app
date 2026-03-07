@@ -1,0 +1,46 @@
+name: NADRA CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  ACR_NAME: nadraacr.azurecr.io
+  INFRA_REPO: pixelopscloud/nadra-infra
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Login to ACR
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.ACR_NAME }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Build and Push Frontend
+      run: |
+        docker build -t ${{ env.ACR_NAME }}/nadra-frontend:${{ github.sha }} ./frontend
+        docker push ${{ env.ACR_NAME }}/nadra-frontend:${{ github.sha }}
+
+    - name: Build and Push Backend
+      run: |
+        docker build -t ${{ env.ACR_NAME }}/nadra-backend:${{ github.sha }} ./backend
+        docker push ${{ env.ACR_NAME }}/nadra-backend:${{ github.sha }}
+
+    - name: Update Dev Image Tags
+      run: |
+        git clone https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ env.INFRA_REPO }}
+        cd nadra-infra
+        sed -i "s|nadraacr.azurecr.io/nadra-frontend:.*|nadraacr.azurecr.io/nadra-frontend:${{ github.sha }}|g" dev/frontend/deployment.yaml
+        sed -i "s|nadraacr.azurecr.io/nadra-backend:.*|nadraacr.azurecr.io/nadra-backend:${{ github.sha }}|g" dev/backend/deployment.yaml
+        git config user.email "ci@nadra.gov.pk"
+        git config user.name "NADRA CI"
+        git add .
+        git commit -m "ci: update dev image tags to ${{ github.sha }}"
+        git push

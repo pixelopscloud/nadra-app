@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NADRA - National Database</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+        }
+        .header {
+            background: #16213e;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #0f3460;
+        }
+        .header h1 { color: #e94560; font-size: 2em; }
+        .header p { color: #a8a8b3; margin-top: 5px; }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            background: #16213e;
+            color: white;
+            font-size: 1em;
+        }
+        button {
+            padding: 15px 30px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        button:hover { background: #c73652; }
+        .result {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        .result h3 { color: #e94560; }
+        .result p { color: #a8a8b3; margin-top: 5px; }
+        .no-result { text-align: center; color: #a8a8b3; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🇵🇰 NADRA</h1>
+        <p>National Database & Registration Authority</p>
+    </div>
+    <div class="container">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Citizen ka naam search karein..." />
+            <button onclick="search()">Search</button>
+        </div>
+        <div id="results"></div>
+    </div>
+    <script>
+        const BACKEND = 'http://' + window.location.hostname + ':3000';
+        async function search() {
+            const name = document.getElementById('searchInput').value;
+            if (!name) return;
+            const res = await fetch(BACKEND + '/search?name=' + name);
+            const data = await res.json();
+            const div = document.getElementById('results');
+            if (data.length === 0) {
+                div.innerHTML = '<p class="no-result">Koi record nahi mila!</p>';
+                return;
+            }
+            div.innerHTML = data.map(c => `
+                <div class="result">
+                    <h3>${c.name}</h3>
+                    <p>CNIC: ${c.cnic}</p>
+                    <p>City: ${c.city}</p>
+                </div>
+            `).join('');
+        }
+        document.getElementById('searchInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') search();
+        });
+    </script>
+</body>
+</html>
