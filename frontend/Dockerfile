@@ -1,4 +1,4 @@
-FROM nginx:alpine
+FROM nginx:1.27-alpine3.20
 COPY index.html /usr/share/nginx/html/index.html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
