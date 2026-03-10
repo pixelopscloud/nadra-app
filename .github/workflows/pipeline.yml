@@ -96,7 +96,7 @@ jobs:
       with:
         target: 'http://104.211.230.19'
         fail_action: false
-        issue_title: 'ZAP Scan Report'
+        artifact_name: ''
 
   deploy-prod:
     runs-on: ubuntu-latest
